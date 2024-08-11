@@ -1,3 +1,31 @@
+# Ignore bin and obj directories
+bin/
+obj/
+
+# Ignore Rider-specific files
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Ignore Rider cache files
+**/obj/**/*.cache
+**/obj/**/*.json
+**/obj/**/*.bin
+**/obj/**/*.dll
+**/obj/**/*.pdb
+**/obj/**/*.log
+**/obj/**/*.xml
+**/obj/**/*.nuget.*
+
+# Ignore NuGet packages
+*.nupkg
+*.snupkg
+
+# Ignore logs
+*.log
+
 # Ignore build outputs
 bin/
 obj/
