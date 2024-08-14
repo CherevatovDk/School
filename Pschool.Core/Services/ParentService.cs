@@ -8,48 +8,45 @@ namespace Pschool.Core.Services;
 
 public class ParentService(IRepository<Parent> repositoryParent, IMapper mapper) : IParentService
 {
-    private readonly IRepository<Parent> _repositoryParent = repositoryParent;
-    private readonly IMapper _mapper = mapper;
-
-    public async Task<IEnumerable<ParentDto>> GetParentsAsync()
+    public async Task<IEnumerable<ParentDto>?> GetParentsAsync()
     {
-        var parents =await _repositoryParent.GetAllAsync();
-        return  _mapper.Map<IEnumerable<ParentDto>>(parents);
+        var parents = await repositoryParent.GetAllAsync();
+        return mapper.Map<IEnumerable<ParentDto>>(parents);
     }
 
-    public async Task<ParentDto> GetParentsByIdAsync(int id)
+    public async Task<ParentDto?> GetParentsByIdAsync(int id)
     {
-        var parent = await _repositoryParent.GetByIdAsync(id);
-        return _mapper.Map<ParentDto>(parent);
+        var parent = await repositoryParent.GetByIdAsync(id);
+        return mapper.Map<ParentDto>(parent);
     }
 
-    public async Task<ParentDto> AddParentAsync(ParentDto parentDto)
+    public async Task<ParentDto?> AddParentAsync(ParentDto parentDto)
     {
-        var existParent = await _repositoryParent.GetByEmailAsync(parentDto.Email);
+        var existParent = await repositoryParent.GetByEmailAsync(parentDto.Email);
         if (existParent != null)
         {
-            throw new InvalidOperationException("A parent with this email already exists.");
+            throw new InvalidOperationException("A parent with this email already exists."); //TODO move to constants
         }
-        var parent = _mapper.Map<Parent>(parentDto);
-        await _repositoryParent.AddAsync(parent);
-        return _mapper.Map<ParentDto>(parent);
+
+        var parent = mapper.Map<Parent>(parentDto);
+        await repositoryParent.AddAsync(parent);
+        return mapper.Map<ParentDto>(parent);
     }
 
     public async Task<ParentDto?> UpdateParentAsync(int id, ParentDto parentDto)
     {
-        var parent =await _repositoryParent.GetByIdAsync(id);
-        if (parent == null) return null;
-        _mapper.Map(parentDto, parent);
-        await _repositoryParent.UpdateAsync(parent);
-        return _mapper.Map<ParentDto>(parent);
+        var parent = await repositoryParent.GetByIdAsync(id);
+        if (parent == null) return null; //TODO throw invalid exception with message 
+        mapper.Map(parentDto, parent);
+        await repositoryParent.UpdateAsync(parent);
+        return mapper.Map<ParentDto>(parent);
     }
 
     public async Task<bool> DeleteParentAsync(int id)
     {
-        var parent =await _repositoryParent.GetByIdAsync(id);
-        if (parent == null) return false;
-         await _repositoryParent.DeleteAsync(parent);
+        var parent = await repositoryParent.GetByIdAsync(id);
+        if (parent == null) return false;// TODO throw invalid exception with message 
+        await repositoryParent.DeleteAsync(parent);
         return true;
-
     }
 }

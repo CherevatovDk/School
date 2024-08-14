@@ -1,0 +1,85 @@
+@page "/parents"
+@using Pschool.Core.DTOs
+@inject IParentService ParentService
+
+<h3>Parents/Guardians List</h3>
+<table class="table">
+    <thead>
+    <tr>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Home Address</th>
+        <th>Phone 1</th>
+        <th>Work Phone</th>
+        <th>Home Phone</th>
+        <th>Siblings</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    @if (parents != null && parents.Any())
+    {
+        foreach (var parent in parents)
+        {
+            <tr>
+                <td>@parent.FirstName</td>
+                <td>@parent.LastName</td>
+                <td>@parent.Username</td>
+                <td>@parent.Email</td>
+                <td>@parent.HomeAddress</td>
+                <td>@parent.Phone1</td>
+                <td>@parent.WorkPhone</td>
+                <td>@parent.HomePhone</td>
+                <td>@parent.Siblings</td>
+                <td>
+                    <button class="btn btn-primary" @onclick="() => EditParent(parent.Id)">Edit</button>
+                    <button class="btn btn-danger" @onclick="() => DeleteParent(parent.Id)">Delete</button>
+                </td>
+            </tr>
+        }
+    }
+    else
+    {
+        <tr>
+            <td colspan="10">No parents found.</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@code {
+    private List<ParentDto>? parents = new List<ParentDto>();
+    private string errorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            parents = await ParentService.GetAllParentsAsync();
+            if (parents == null || !parents.Any())
+            {
+                errorMessage = "No parents found.";
+            }
+            StateHasChanged(); // Оновлюємо UI після отримання даних
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error fetching parents: {ex.Message}";
+        }
+    }
+
+    private async Task EditParent(int id)
+    {
+        // Перехід на сторінку редагування
+        // NavigationManager.NavigateTo($"/editparent/{id}");
+    }
+
+    private async Task DeleteParent(int id)
+    {
+        await ParentService.DeleteParentAsync(id);
+        parents = await ParentService.GetAllParentsAsync(); // Оновлення списку після видалення
+        StateHasChanged(); // Оновлюємо UI після видалення
+    }
+}

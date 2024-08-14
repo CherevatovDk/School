@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pschool.Core", "Pschool.Cor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pschool.Infrastructure", "Pschool.Infrastructure\Pschool.Infrastructure.csproj", "{30CDA7B5-CB22-4C6A-A612-098447BCA156}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pschool.BlazorWasm", "Pschool.BlazorWasm\Pschool.BlazorWasm.csproj", "{413DA799-1F17-45DC-9081-E3EB5BF078D0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{30CDA7B5-CB22-4C6A-A612-098447BCA156}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{30CDA7B5-CB22-4C6A-A612-098447BCA156}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{30CDA7B5-CB22-4C6A-A612-098447BCA156}.Release|Any CPU.Build.0 = Release|Any CPU
+		{413DA799-1F17-45DC-9081-E3EB5BF078D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{413DA799-1F17-45DC-9081-E3EB5BF078D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{413DA799-1F17-45DC-9081-E3EB5BF078D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{413DA799-1F17-45DC-9081-E3EB5BF078D0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
