@@ -3,6 +3,17 @@
 @inject IParentService ParentService
 
 <h3>Parents/Guardians List</h3>
+
+<button class="btn btn-success mb-3" @onclick="AddNewParent">Add Parent</button>
+<button class="btn btn-primary mb-3" @onclick="SaveList">Save List</button>
+
+<input type="text" placeholder="Search" class="form-control mb-3" @bind="searchQuery" @oninput="SearchParents" />
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
 <table class="table">
     <thead>
     <tr>
@@ -19,24 +30,65 @@
     </tr>
     </thead>
     <tbody>
-    @if (parents != null && parents.Any())
+    @if (filteredParents != null && filteredParents.Any())
     {
-        foreach (var parent in parents)
+        @foreach (var parent in filteredParents)
         {
-            <tr>
-                <td>@parent.FirstName</td>
-                <td>@parent.LastName</td>
-                <td>@parent.Username</td>
-                <td>@parent.Email</td>
-                <td>@parent.HomeAddress</td>
-                <td>@parent.Phone1</td>
-                <td>@parent.WorkPhone</td>
-                <td>@parent.HomePhone</td>
-                <td>@parent.Siblings</td>
-                <td>
-                    <button class="btn btn-primary" @onclick="() => EditParent(parent.Id)">Edit</button>
-                    <button class="btn btn-danger" @onclick="() => DeleteParent(parent.Id)">Delete</button>
-                </td>
+            <tr @key="parent.Id">
+                @if (editingParentId == parent.Id)
+                {
+                    <td>
+                        <input type="text" class="form-control" @bind="parent.FirstName"/>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control" @bind="parent.LastName"/>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control" @bind="parent.Username"/>
+                    </td>
+                    <td>
+                        <input type="email" class="form-control" @bind="parent.Email"/>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control" @bind="parent.HomeAddress"/>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control" @bind="parent.Phone1"/>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control" @bind="parent.WorkPhone"/>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control" @bind="parent.HomePhone"/>
+                    </td>
+                    <td>
+                        <input type="number" class="form-control" @bind="parent.Siblings"/>
+                    </td>
+                    <td>
+                        <button class="btn btn-success" @onclick="() => SaveParent(parent)">Save</button>
+                        <button class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+                    </td>
+                }
+                else
+                {
+                    <td>@parent.FirstName</td>
+                    <td>@parent.LastName</td>
+                    <td>@parent.Username</td>
+                    <td>@parent.Email</td>
+                    <td>@parent.HomeAddress</td>
+                    <td>@parent.Phone1</td>
+                    <td>@parent.WorkPhone</td>
+                    <td>@parent.HomePhone</td>
+                    <td>@parent.Siblings</td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="() => EditParent(parent.Id)">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger" @onclick="() => DeleteParent(parent.Id)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                }
             </tr>
         }
     }
@@ -50,19 +102,24 @@
 </table>
 
 @code {
-    private List<ParentDto>? parents = new List<ParentDto>();
+    private List<ParentDto>? parents = new();
+    private List<ParentDto>? filteredParents = new();
+    private int? editingParentId = null;
+    private bool isAddingNewParent = false;
     private string errorMessage = string.Empty;
+    private string searchQuery = string.Empty;
 
     protected override async Task OnInitializedAsync()
+    {
+        await LoadParentsAsync();
+    }
+
+    private async Task LoadParentsAsync()
     {
         try
         {
             parents = await ParentService.GetAllParentsAsync();
-            if (parents == null || !parents.Any())
-            {
-                errorMessage = "No parents found.";
-            }
-            StateHasChanged(); // Оновлюємо UI після отримання даних
+            filteredParents = parents;
         }
         catch (Exception ex)
         {
@@ -70,16 +127,88 @@
         }
     }
 
-    private async Task EditParent(int id)
+    private void SearchParents(ChangeEventArgs e)
     {
-        // Перехід на сторінку редагування
-        // NavigationManager.NavigateTo($"/editparent/{id}");
+        searchQuery = e.Value?.ToString() ?? string.Empty;
+        if (!string.IsNullOrEmpty(searchQuery))
+        {
+            filteredParents = parents?.Where(p => p.FirstName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                                                  p.LastName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                                                  p.Username.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                                                  p.Email.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+        else
+        {
+            filteredParents = parents;
+        }
+    }
+
+    private void EditParent(int id)
+    {
+        CancelEdit();
+        editingParentId = id;
+    }
+
+    private void AddNewParent()
+    {
+        CancelEdit();
+        isAddingNewParent = true;
+        parents?.Add(new ParentDto { Id = 0 });
+        editingParentId = parents?.Last().Id;
+    }
+
+    private void CancelEdit()
+    {
+        editingParentId = null;
+        isAddingNewParent = false;
+        if (parents != null && parents.Any(p => p.Id == 0))
+        {
+            var newParent = parents.FirstOrDefault(p => p.Id == 0);
+            if (newParent != null)
+            {
+                parents.Remove(newParent);
+            }
+        }
+    }
+
+    private async Task SaveParent(ParentDto parent)
+    {
+        try
+        {
+            if (parent.Id > 0)
+            {
+                await ParentService.UpdateParentAsync(parent.Id, parent);
+            }
+            else
+            {
+                await ParentService.AddParentAsync(parent);
+            }
+
+            await LoadParentsAsync();
+            editingParentId = null;
+            isAddingNewParent = false;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error saving parent: {ex.Message}";
+        }
     }
 
     private async Task DeleteParent(int id)
     {
-        await ParentService.DeleteParentAsync(id);
-        parents = await ParentService.GetAllParentsAsync(); // Оновлення списку після видалення
-        StateHasChanged(); // Оновлюємо UI після видалення
+        try
+        {
+            await ParentService.DeleteParentAsync(id);
+            await LoadParentsAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error deleting parent: {ex.Message}";
+        }
+    }
+
+    private void SaveList()
+    {
+        // Implement the save list functionality
     }
 }

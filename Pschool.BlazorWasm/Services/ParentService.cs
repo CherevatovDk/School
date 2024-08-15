@@ -1,45 +1,40 @@
-using System.Net.Http.Json;
+using Pschool.BlazorWasm.IServices;
 using Pschool.Core.DTOs;
 
 namespace Pschool.BlazorWasm.Services;
 
 public class ParentService : IParentService
 {
-    private readonly HttpClient _httpClient;
+    private readonly IHttpClientService _httpClientService;
 
-    public ParentService(HttpClient httpClient)
+    public ParentService(IHttpClientService httpClientService)
     {
-        _httpClient = httpClient;
+        _httpClientService = httpClientService;
     }
-    
 
     public async Task<List<ParentDto>?> GetAllParentsAsync()
     {
-        return await _httpClient.GetFromJsonAsync<List<ParentDto>>("/parent/all");
+        return await _httpClientService.SendRequestAsync<List<ParentDto>>("parent/all");
     }
-
-  
 
     public async Task<ParentDto?> GetParentByIdAsync(int id)
     {
-        return await _httpClient.GetFromJsonAsync<ParentDto>($"parent/{id}");
+        return await _httpClientService.SendRequestAsync<ParentDto>($"parent/{id}");
     }
 
     public async Task<ParentDto?> AddParentAsync(ParentDto parentDto)
     {
-        var response = await _httpClient.PostAsJsonAsync("parent/add", parentDto);
-        return await response.Content.ReadFromJsonAsync<ParentDto>();
+        return await _httpClientService.SendRequestAsync<ParentDto>("parent/add", HttpMethod.Post, parentDto);
     }
 
     public async Task<ParentDto?> UpdateParentAsync(int id, ParentDto parentDto)
     {
-        var response = await _httpClient.PutAsJsonAsync($"/parent/{id}", parentDto);
-        return await response.Content.ReadFromJsonAsync<ParentDto>();
+        return await _httpClientService.SendRequestAsync<ParentDto>($"parent/{id}", HttpMethod.Put, parentDto);
     }
 
     public async Task<bool> DeleteParentAsync(int id)
     {
-        var response = await _httpClient.DeleteAsync($"/parent/{id}");
-        return response.IsSuccessStatusCode;
+        var response = await _httpClientService.SendRequestAsync<object>($"parent/{id}", HttpMethod.Delete);
+        return response != null;
     }
 }
