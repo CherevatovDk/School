@@ -10,17 +10,15 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
     {
         return await context.Set<T>().ToListAsync();
     }
+
     public async Task<T?> GetByEmailAsync(string? email)
     {
-        
         return await context.Set<T>().SingleOrDefaultAsync(e => EF.Property<string>(e, "Email") == email);
     }
-
 
     public async Task<T?> GetByIdAsync(int id)
     {
         return await context.Set<T>().FindAsync(id);
-        
     }
 
     public async Task AddAsync(T entity)
