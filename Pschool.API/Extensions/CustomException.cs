@@ -9,4 +9,12 @@ namespace Pschool.API.Extensions
     {
         public ValidationException(string message) : base(message) { }
     }
+    public class EmailAlreadyExistsException : Exception
+    {
+        public EmailAlreadyExistsException(string email)
+            : base($"An account with the email '{email}' already exists.")
+        {
+        }
+    }
+
 }

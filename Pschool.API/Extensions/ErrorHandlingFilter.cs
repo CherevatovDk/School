@@ -23,6 +23,13 @@ namespace Pschool.API.Extensions
 
             switch (context.Exception)
             {
+                case EmailAlreadyExistsException ex:
+                    problemDetails.Type = "https://httpstatuses.com/400";
+                    problemDetails.Title = "Conflict";
+                    problemDetails.Status = (int)HttpStatusCode.Conflict;
+                    problemDetails.Detail = ex.Message;
+                    result = new ConflictObjectResult(problemDetails);
+                    break;
                 case NotFoundException ex:
                     problemDetails.Type = "https://httpstatuses.com/404";
                     problemDetails.Title = "Not Found";
