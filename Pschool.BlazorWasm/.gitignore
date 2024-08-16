@@ -98,8 +98,7 @@ project.nuget.dgspec.json
 # Ignore MSBuild binary logs
 *.binlog
 
-# Ignore the folder containing the Blazor WebAssembly static assets
-wwwroot/
+
 
 # Ignore Docker-related files
 **/[Dd]ocker*
