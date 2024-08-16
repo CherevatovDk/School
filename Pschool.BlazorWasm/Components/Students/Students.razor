@@ -1,0 +1,244 @@
+@page "/students"
+@using Pschool.Core.DTOs
+@using Pschool.BlazorWasm.IServices
+@inject IStudentService StudentService
+@inject IParentService ParentService
+@inject NavigationManager NavigationManager
+
+<h3>Students List</h3>
+
+<!-- Filter by Parent -->
+<div class="form-group">
+    <label for="parentSelect">Filter by Parent:</label>
+    <select id="parentSelect" class="form-control" @onchange="OnParentSelected">
+        <option value="">-- Select Parent --</option>
+        @if (parents != null)
+        {
+            @foreach (var parent in parents)
+            {
+                <option value="@parent.Id">@parent.FirstName @parent.LastName</option>
+            }
+        }
+    </select>
+</div>
+
+<!-- Search and Actions -->
+<button class="btn btn-success mb-3" @onclick="AddNewStudent">Add Student</button>
+
+
+<input type="text" placeholder="Search" class="form-control mb-3" @bind="searchQuery" @oninput="SearchStudents" />
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<!-- Students Table -->
+<table class="table">
+    <thead>
+    <tr>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Parent</th>
+     
+    </tr>
+    </thead>
+    <tbody>
+    @if (filteredStudents != null && filteredStudents.Any())
+    {
+        @foreach (var student in filteredStudents)
+        {
+            <tr @key="student.Id">
+                @if (editingStudentId == student.Id)
+                {
+                    <td>
+                        <input type="text" class="form-control" @bind="student.FirstName"/>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control" @bind="student.LastName"/>
+                    </td>
+                    <td>
+                        <select class="form-control" @bind="student.ParentId">
+                            <option value="">-- Select Parent --</option>
+                            @if (parents != null)
+                            {
+                                @foreach (var parent in parents)
+                                {
+                                    <option value="@parent.Id">@parent.FirstName @parent.LastName</option>
+                                }
+                            }
+                        </select>
+                    </td>
+                    <td>
+                        <button class="btn btn-success" @onclick="() => SaveStudent(student)">Save</button>
+                        <button class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+                    </td>
+                }
+                else
+                {
+                    <td>@student.FirstName</td>
+                    <td>@student.LastName</td>
+                    <td>@(students?.FirstOrDefault(s => s.Id == student.ParentId)?.FirstName + " " + students?.FirstOrDefault(s => s.Id == student.ParentId)?.LastName ?? "No Parent")</td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="() => EditStudent(student.Id)">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger" @onclick="() => DeleteStudent(student.Id)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                }
+            </tr>
+        }
+    }
+    else
+    {
+        <tr>
+            <td colspan="11">No students found.</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@code {
+    private List<StudentDto>? students = new();
+    private List<StudentDto>? filteredStudents = new();
+    private List<ParentDto>? parents = new();
+    private int? editingStudentId = null;
+    private bool isAddingNewStudent = false;
+    private string errorMessage = string.Empty;
+    private string searchQuery = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadParentsAsync();
+        await LoadStudentsAsync();
+    }
+
+    private async Task LoadParentsAsync()
+    {
+        try
+        {
+            parents = await ParentService.GetAllParentsAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading parents: {ex.Message}";
+        }
+    }
+
+    private async Task LoadStudentsAsync(int? parentId = null)
+    {
+        try
+        {
+            if (parentId.HasValue && parentId.Value > 0)
+            {
+                students = await StudentService.GetStudentsByParentIdAsync(parentId.Value);
+            }
+            else
+            {
+                students = await StudentService.GetAllStudentsAsync();
+            }
+            filteredStudents = students;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading students: {ex.Message}";
+        }
+    }
+
+    private async Task OnParentSelected(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var parentId))
+        {
+            await LoadStudentsAsync(parentId);
+        }
+        else
+        {
+            await LoadStudentsAsync();
+        }
+    }
+
+    private void SearchStudents(ChangeEventArgs e)
+    {
+        searchQuery = e.Value?.ToString() ?? string.Empty;
+        if (!string.IsNullOrEmpty(searchQuery))
+        {
+            filteredStudents = students?.Where(s => s.FirstName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                                                    s.LastName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+        else
+        {
+            filteredStudents = students;
+        }
+    }
+
+    private void EditStudent(int id)
+    {
+        CancelEdit();
+        editingStudentId = id;
+    }
+
+    private void AddNewStudent()
+    {
+        CancelEdit();
+        isAddingNewStudent = true;
+        students?.Add(new StudentDto { Id = 0 });
+        editingStudentId = students?.Last().Id;
+    }
+
+    private void CancelEdit()
+    {
+        editingStudentId = null;
+        isAddingNewStudent = false;
+        if (students != null && students.Any(s => s.Id == 0))
+        {
+            var newStudent = students.FirstOrDefault(s => s.Id == 0);
+            if (newStudent != null)
+            {
+                students.Remove(newStudent);
+            }
+        }
+    }
+
+    private async Task SaveStudent(StudentDto? student)
+    {
+        try
+        {
+            if (student != null)
+            {
+                if (student.Id > 0)
+                {
+                    await StudentService.UpdateStudentAsync(student.Id, student);
+                }
+                else
+                {
+                    await StudentService.AddStudentAsync(student);
+                }
+
+                await LoadStudentsAsync();
+                editingStudentId = null;
+                isAddingNewStudent = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error saving student: {ex.Message}";
+        }
+    }
+
+    private async Task DeleteStudent(int id)
+    {
+        try
+        {
+            await StudentService.DeleteStudentAsync(id);
+            await LoadStudentsAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error deleting student: {ex.Message}";
+        }
+    }
+
+ 
+}

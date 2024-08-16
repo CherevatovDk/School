@@ -1,0 +1,98 @@
+@page "/add-parent"
+@using Pschool.Core.DTOs
+@using Pschool.BlazorWasm.IServices
+@inject IParentService ParentService
+@inject NavigationManager NavigationManager
+
+<h3 class="mb-4">Add Parent</h3>
+
+<EditForm Model="@newParent" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="card">
+        <div class="card-body">
+            <div class="form-group">
+                <label for="firstName">First Name</label>
+                <InputText id="firstName" class="form-control" @bind-Value="newParent.FirstName" />
+                <ValidationMessage For="@(() => newParent.FirstName)" />
+            </div>
+
+            <div class="form-group">
+                <label for="lastName">Last Name</label>
+                <InputText id="lastName" class="form-control" @bind-Value="newParent.LastName" />
+                <ValidationMessage For="@(() => newParent.LastName)" />
+            </div>
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                <InputText id="username" class="form-control" @bind-Value="newParent.Username" />
+                <ValidationMessage For="@(() => newParent.Username)" />
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <InputText id="email" type="email" class="form-control" @bind-Value="newParent.Email" />
+                <ValidationMessage For="@(() => newParent.Email)" />
+            </div>
+
+            <div class="form-group">
+                <label for="homeAddress">Home Address</label>
+                <InputText id="homeAddress" class="form-control" @bind-Value="newParent.HomeAddress" />
+                <ValidationMessage For="@(() => newParent.HomeAddress)" />
+            </div>
+
+            <div class="form-group">
+                <label for="phone1">Phone 1</label>
+                <InputText id="phone1" class="form-control" @bind-Value="newParent.Phone1" />
+                <ValidationMessage For="@(() => newParent.Phone1)" />
+            </div>
+
+            <div class="form-group">
+                <label for="workPhone">Work Phone</label>
+                <InputText id="workPhone" class="form-control" @bind-Value="newParent.WorkPhone" />
+                <ValidationMessage For="@(() => newParent.WorkPhone)" />
+            </div>
+
+            <div class="form-group">
+                <label for="homePhone">Home Phone</label>
+                <InputText id="homePhone" class="form-control" @bind-Value="newParent.HomePhone" />
+                <ValidationMessage For="@(() => newParent.HomePhone)" />
+            </div>
+
+            <div class="form-group">
+                <label for="siblings">Siblings</label>
+                <InputNumber id="siblings" class="form-control" @bind-Value="newParent.Siblings" />
+                <ValidationMessage For="@(() => newParent.Siblings)" />
+            </div>
+            
+            <div class="form-group mt-4">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    private ParentDto newParent = new();
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            await ParentService.AddParentAsync(newParent);
+            NavigationManager.NavigateTo("/parents");
+        }
+        catch (Exception ex)
+        {
+            
+            Console.WriteLine($"Error adding parent: {ex.Message}");
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/parents");
+    }
+}
