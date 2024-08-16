@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Pschool.API.Extensions;
 using Pschool.API.Mapping;
 using Pschool.Core.Interface;
 using Pschool.Core.Services;
@@ -21,6 +22,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll",
         builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+});
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<ErrorHandlingFilter>(); // Register the global error filter
 });
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
