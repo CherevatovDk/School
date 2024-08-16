@@ -52,7 +52,7 @@ $RECYCLE.BIN/
 .vscode/
 
 # Publish directory (for Blazor)
-wwwroot/
+
 publish/
 app.publish/
 

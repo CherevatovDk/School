@@ -22,12 +22,12 @@ public class ParentService : IParentService
         return await _httpClientService.SendRequestAsync<ParentDto>($"parent/{id}");
     }
 
-    public async Task<ParentDto?> AddParentAsync(ParentDto parentDto)
+    public async Task<ParentDto?> AddParentAsync(ParentDto? parentDto)
     {
         return await _httpClientService.SendRequestAsync<ParentDto>("parent/add", HttpMethod.Post, parentDto);
     }
 
-    public async Task<ParentDto?> UpdateParentAsync(int id, ParentDto parentDto)
+    public async Task<ParentDto?> UpdateParentAsync(int id, ParentDto? parentDto)
     {
         return await _httpClientService.SendRequestAsync<ParentDto>($"parent/{id}", HttpMethod.Put, parentDto);
     }

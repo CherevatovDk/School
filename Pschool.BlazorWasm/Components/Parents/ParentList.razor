@@ -1,6 +1,8 @@
 @page "/parents"
 @using Pschool.Core.DTOs
+@using Pschool.BlazorWasm.IServices
 @inject IParentService ParentService
+@inject NavigationManager NavigationManager
 
 <h3>Parents/Guardians List</h3>
 
@@ -102,10 +104,10 @@
 </table>
 
 @code {
-    private List<ParentDto>? parents = new();
-    private List<ParentDto>? filteredParents = new();
+    private List<ParentDto>? parents;
+    private List<ParentDto>? filteredParents;
     private int? editingParentId = null;
-    private bool isAddingNewParent = false;
+    private ParentDto? newParent = null;
     private string errorMessage = string.Empty;
     private string searchQuery = string.Empty;
 
@@ -130,16 +132,15 @@
     private void SearchParents(ChangeEventArgs e)
     {
         searchQuery = e.Value?.ToString() ?? string.Empty;
-        if (!string.IsNullOrEmpty(searchQuery))
+
+        if (parents != null)
         {
-            filteredParents = parents?.Where(p => p.FirstName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
-                                                  p.LastName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
-                                                  p.Username.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
-                                                  p.Email.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)).ToList();
-        }
-        else
-        {
-            filteredParents = parents;
+            filteredParents = parents
+                .Where(p => p.FirstName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                            p.LastName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                            p.Username.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                            p.Email.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+                .ToList();
         }
     }
 
@@ -152,41 +153,40 @@
     private void AddNewParent()
     {
         CancelEdit();
-        isAddingNewParent = true;
-        parents?.Add(new ParentDto { Id = 0 });
-        editingParentId = parents?.Last().Id;
+        newParent = new ParentDto { Id = 0 };
+        parents?.Add(newParent);
+        editingParentId = newParent.Id;
     }
 
     private void CancelEdit()
     {
         editingParentId = null;
-        isAddingNewParent = false;
-        if (parents != null && parents.Any(p => p.Id == 0))
+        if (newParent != null && parents != null)
         {
-            var newParent = parents.FirstOrDefault(p => p.Id == 0);
-            if (newParent != null)
-            {
-                parents.Remove(newParent);
-            }
+            parents.Remove(newParent);
+            newParent = null;
         }
     }
 
-    private async Task SaveParent(ParentDto parent)
+    private async Task SaveParent(ParentDto? parent)
     {
         try
         {
-            if (parent.Id > 0)
+            if (parent != null)
             {
-                await ParentService.UpdateParentAsync(parent.Id, parent);
-            }
-            else
-            {
-                await ParentService.AddParentAsync(parent);
-            }
+                if (parent.Id > 0)
+                {
+                    await ParentService.UpdateParentAsync(parent.Id, parent);
+                }
+                else
+                {
+                    await ParentService.AddParentAsync(parent);
+                }
 
-            await LoadParentsAsync();
-            editingParentId = null;
-            isAddingNewParent = false;
+                await LoadParentsAsync();
+                editingParentId = null;
+                newParent = null;
+            }
         }
         catch (Exception ex)
         {
@@ -209,6 +209,6 @@
 
     private void SaveList()
     {
-        // Implement the save list functionality
+        
     }
 }

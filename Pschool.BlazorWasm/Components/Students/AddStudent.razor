@@ -1,0 +1,82 @@
+@page "/add-student"
+@using Pschool.Core.DTOs
+@using Pschool.BlazorWasm.IServices
+@inject IStudentService StudentService
+@inject IParentService ParentService
+@inject NavigationManager NavigationManager
+
+<h3 class="mb-4">Add Student</h3>
+
+<EditForm Model="@newStudent" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="card">
+        <div class="card-body">
+            <div class="form-group">
+                <label for="firstName">First Name</label>
+                <InputText id="firstName" class="form-control" @bind-Value="newStudent.FirstName" />
+                <ValidationMessage For="@(() => newStudent.FirstName)" />
+            </div>
+
+            <div class="form-group">
+                <label for="lastName">Last Name</label>
+                <InputText id="lastName" class="form-control" @bind-Value="newStudent.LastName" />
+                <ValidationMessage For="@(() => newStudent.LastName)" />
+            </div>
+
+            <div class="form-group">
+                <label for="parentSelect">Parent</label>
+                <select id="parentSelect" class="form-control" @bind="newStudent.ParentId">
+                    <option value="">-- Select Parent --</option>
+                    @if (parents != null)
+                    {
+                        @foreach (var parent in parents)
+                        {
+                            <option value="@parent.Id">@parent.FirstName @parent.LastName</option>
+                        }
+                    }
+                </select>
+                <ValidationMessage For="@(() => newStudent.ParentId)" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    private StudentDto newStudent = new StudentDto();
+    private List<ParentDto> parents = new List<ParentDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            parents = await ParentService.GetAllParentsAsync();
+        }
+        catch (Exception ex)
+        {
+          
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            await StudentService.AddStudentAsync(newStudent);
+            NavigationManager.NavigateTo("/students");
+        }
+        catch (Exception ex)
+        {
+           
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/students");
+    }
+}

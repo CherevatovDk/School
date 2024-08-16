@@ -50,7 +50,7 @@ namespace Pschool.API.Controller
         {
             var deleted = await _parentService.DeleteParentAsync(id);
             if (!deleted) return NotFound();
-            return NoContent(); 
+            return NoContent();
         }
     }
 }

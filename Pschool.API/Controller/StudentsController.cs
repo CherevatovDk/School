@@ -8,7 +8,6 @@ namespace Pschool.API.Controller
     [Route("[controller]")]
     public class StudentsController(IStudentService studentService) : ControllerBase
     {
-        // GET: api/students
         [HttpGet]
         public async Task<IActionResult> GetStudents()
         {
@@ -16,7 +15,6 @@ namespace Pschool.API.Controller
             return Ok(students);
         }
 
-        // GET: api/students/5
         [HttpGet("{id}")]
         public async Task<IActionResult> GetStudent(int id)
         {
@@ -25,10 +23,10 @@ namespace Pschool.API.Controller
             {
                 return NotFound();
             }
+
             return Ok(student);
         }
 
-        // POST: api/students
         [HttpPost]
         public async Task<IActionResult> PostStudent([FromBody] StudentDto studentDto)
         {
@@ -41,7 +39,6 @@ namespace Pschool.API.Controller
             return CreatedAtAction(nameof(GetStudent), new { id = createdStudent?.Id }, createdStudent);
         }
 
-        // PUT: api/students/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutStudent(int id, [FromBody] StudentDto studentDto)
         {
@@ -55,10 +52,10 @@ namespace Pschool.API.Controller
             {
                 return NotFound();
             }
+
             return Ok(updatedStudent);
         }
 
-        // DELETE: api/students/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudent(int id)
         {
@@ -67,10 +64,10 @@ namespace Pschool.API.Controller
             {
                 return NotFound();
             }
+
             return NoContent();
         }
 
-        // GET: api/students/parent/{parentId}
         [HttpGet("parent/{parentId}")]
         public async Task<IActionResult> GetStudentsByParentId(int parentId)
         {
