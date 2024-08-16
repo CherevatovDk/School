@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Pschool.Infrastructure.Data;
 using Pschool.Infrastructure.IRepositories;
@@ -37,5 +38,9 @@ public class Repository<T>(ApplicationDbContext context) : IRepository<T> where 
     {
         context.Set<T>().Remove(entity);
         await context.SaveChangesAsync();
+    }
+    public async Task<IEnumerable<T>> GetByExpressionAsync(Expression<Func<T, bool>> predicate)
+    {
+        return await context.Set<T>().Where(predicate).ToListAsync();
     }
 }

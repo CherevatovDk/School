@@ -2,48 +2,55 @@ using Microsoft.AspNetCore.Mvc;
 using Pschool.Core.DTOs;
 using Pschool.Core.Interface;
 
-namespace Pschool.API.Controller;
-
-
-[ApiController]
-[Route("[controller]")]
-public class ParentController(IParentService parentService) : ControllerBase
+namespace Pschool.API.Controller
 {
-    [HttpGet("all")]
-    public async Task<IActionResult> GetAllParents()
+    [ApiController]
+    [Route("[controller]")]
+    public class ParentController : ControllerBase
     {
-        var parents = await parentService.GetParentsAsync();
-        return Ok(parents);//TODO 204
-    }
+        private readonly IParentService _parentService;
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetParentById(int id)
-    {
-        var parent = await parentService.GetParentsByIdAsync(id);
-        if (parent == null) return NotFound();
-        return Ok(parent);//TODO 204
-    }
+        public ParentController(IParentService parentService)
+        {
+            _parentService = parentService;
+        }
 
-    [HttpPost("add")]
-    public async Task<ParentDto?> AddParents([FromBody] ParentDto parentDto)
-    {
-        var parent = await parentService.AddParentAsync(parentDto);
-        return parent;//TODO 201
-    }
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllParents()
+        {
+            var parents = await _parentService.GetParentsAsync();
+            return Ok(parents);
+        }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateParent([FromBody]ParentDto parentDto, int id)
-    {
-        var updateParent = await parentService.UpdateParentAsync(id, parentDto);
-        if (updateParent == null) return NotFound(); //TODO uses validation from service parents and throw ne custom exception which will be caught error handling filter  
-        return Ok((updateParent));//TODO 204
-    }
-    
-    [HttpDelete("{id}")]
-    public async Task<IActionResult>Delete(int id)
-    {
-        var deleted =await parentService.DeleteParentAsync(id);
-        if (!deleted) return NotFound();//TODO uses validation from service parents and throw ne custom exception which will be caught error handling filter  
-        return Ok(deleted); //TODO return 204
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetParentById(int id)
+        {
+            var parent = await _parentService.GetParentsByIdAsync(id);
+            if (parent == null) return NotFound();
+            return Ok(parent);
+        }
+
+        [HttpPost("add")]
+        public async Task<IActionResult> AddParent([FromBody] ParentDto parentDto)
+        {
+            var parent = await _parentService.AddParentAsync(parentDto);
+            return CreatedAtAction(nameof(GetParentById), new { id = parent.Id }, parent);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateParent(int id, [FromBody] ParentDto parentDto)
+        {
+            var updatedParent = await _parentService.UpdateParentAsync(id, parentDto);
+            if (updatedParent == null) return NotFound();
+            return Ok(updatedParent);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteParent(int id)
+        {
+            var deleted = await _parentService.DeleteParentAsync(id);
+            if (!deleted) return NotFound();
+            return NoContent(); 
+        }
     }
 }
